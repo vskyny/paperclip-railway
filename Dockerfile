@@ -1,7 +1,7 @@
 # Paperclip on Railway.
 #
-# Upstream publishes a complete image. This wrapper bootstraps the first
-# instance admin and corrects older Codex managed MCP header serialization.
+# Upstream publishes a complete image, so this repo adds exactly one thing the
+# published image cannot do by itself: create the first instance admin.
 #
 # Paperclip's `authenticated + public` mode deliberately disables the browser
 # "claim this instance" screen (doc/DEPLOYMENT-MODES.md §8) precisely so that a
@@ -10,7 +10,8 @@
 # `paperclipai auth bootstrap-ceo` CLI — a shell step a template deployer does
 # not have. The wrapper below mints that invite at boot and prints it to the
 # Railway deploy log, which only the project's own members can read.
-FROM ghcr.io/paperclipai/paperclip:latest
+# Keep the existing Railway deployment's base image while applying this fix.
+FROM ghcr.io/paperclipai/paperclip@sha256:a02ac35ac41df911af477422ea0e781cf41d2b2c600c66f0a5ac9d8c63f52c2c
 
 # The upstream ENTRYPOINT (docker-entrypoint.sh) still runs first, as root: it
 # chowns $PAPERCLIP_HOME — which on Railway is a volume that arrives root-owned
@@ -20,8 +21,12 @@ FROM ghcr.io/paperclipai/paperclip:latest
 # and the privilege drop.
 USER root
 
-# Older upstream images emit an ignored MCP headers key. Patch only that
-# known generator; already-correct images are accepted without modification.
+# Patch only the Slack MCP catalog entry until upstream PR #13954 ships.
+COPY scripts/fix-slack-mcp-oauth.mjs /tmp/fix-slack-mcp-oauth.mjs
+RUN node /tmp/fix-slack-mcp-oauth.mjs \
+  && rm /tmp/fix-slack-mcp-oauth.mjs
+
+# Correct Codex managed MCP HTTP authentication on this same pinned image.
 COPY scripts/fix-codex-mcp-headers.mjs /tmp/fix-codex-mcp-headers.mjs
 RUN node /tmp/fix-codex-mcp-headers.mjs /app/packages/adapters/codex-local/src/server/codex-home.ts \
     && rm /tmp/fix-codex-mcp-headers.mjs
