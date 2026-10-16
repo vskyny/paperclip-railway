@@ -20,6 +20,12 @@ FROM ghcr.io/paperclipai/paperclip:latest
 # and the privilege drop.
 USER root
 
+# Older upstream images emit an ignored MCP headers key. Patch only that
+# known generator; already-correct images are accepted without modification.
+COPY scripts/fix-codex-mcp-headers.mjs /tmp/fix-codex-mcp-headers.mjs
+RUN node /tmp/fix-codex-mcp-headers.mjs /app/packages/adapters/codex-local/src/server/codex-home.ts \
+    && rm /tmp/fix-codex-mcp-headers.mjs
+
 # Both files live under /app/server so that Node resolves `@paperclipai/db` and
 # `drizzle-orm` through server/node_modules, the same way the server does.
 COPY --chown=node:node scripts/railway-start.sh /app/server/railway-start.sh

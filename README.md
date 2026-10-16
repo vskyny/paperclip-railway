@@ -44,3 +44,11 @@ claims the instance; after that the script does nothing.
   it, change it here too.
 - `PAPERCLIP_PUBLIC_URL` defaults to `https://$RAILWAY_PUBLIC_DOMAIN` in
   `railway-start.sh`, so the template needs no host variable.
+
+## Codex managed MCP compatibility
+
+The image build verifies that managed Codex MCP entries use `http_headers`,
+Codex's supported HTTP header field. For older upstream images it changes the
+one known generator line; corrected images are unchanged. Unexpected upstream
+source fails the build for review. Runtime tokens and gateway URLs are untouched.
+Run the regression checks with `node --test scripts/fix-codex-mcp-headers.test.mjs`.
