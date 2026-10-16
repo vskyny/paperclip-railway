@@ -1,7 +1,7 @@
 # Paperclip on Railway.
 #
-# Upstream publishes a complete image, so this repo adds exactly one thing the
-# published image cannot do by itself: create the first instance admin.
+# Upstream publishes a complete image. This wrapper bootstraps the first
+# instance admin and corrects older Codex managed MCP header serialization.
 #
 # Paperclip's `authenticated + public` mode deliberately disables the browser
 # "claim this instance" screen (doc/DEPLOYMENT-MODES.md §8) precisely so that a

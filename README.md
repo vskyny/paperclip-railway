@@ -4,8 +4,8 @@ Deployment wrapper for [Paperclip](https://github.com/paperclipai/paperclip),
 the open-source control plane for managing teams of AI agents at work.
 
 It builds on upstream's published image, `ghcr.io/paperclipai/paperclip:latest`,
-and adds one thing that image cannot do on its own: create the first instance
-admin without a shell.
+bootstraps the first instance admin without a shell, and verifies the managed
+Codex MCP header field for compatibility with older upstream images.
 
 ## Why a wrapper is needed
 
