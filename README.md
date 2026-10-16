@@ -34,6 +34,24 @@ claims the instance; after that the script does nothing.
    so no one else can register. Leave it unset until you have claimed the
    instance — it gates the same endpoint your own signup goes through.
 
+## Slack MCP connection fix
+
+This fork applies the endpoint and scope correction from
+[upstream PR #13954](https://github.com/paperclipai/paperclip/pull/13954) at
+image-build time. Only the Slack `mcp-oauth` method is changed. The Dockerfile
+pins the base image used by the existing Railway deployment, so this fix does
+not also upgrade Paperclip.
+
+In your Slack app, add `channels:read`, `chat:write`, and `search:read.public`
+under **User Token Scopes**, register Paperclip's callback URL, and enable
+**Model Context Protocol** under **Features > Agents & AI Apps**. After
+deploying this image, create a new Slack connection: old incomplete drafts
+retain their original OAuth configuration.
+
+The patch fails the image build if upstream changes the expected catalog
+structure. Once the upstream image includes the fix, remove the patch and
+deliberately update the pinned image digest.
+
 ## Notes for maintainers
 
 - **Never set a Railway start command on this service.** A start command
@@ -44,3 +62,9 @@ claims the instance; after that the script does nothing.
   it, change it here too.
 - `PAPERCLIP_PUBLIC_URL` defaults to `https://$RAILWAY_PUBLIC_DOMAIN` in
   `railway-start.sh`, so the template needs no host variable.
+
+## Codex managed MCP compatibility
+
+The wrapper also corrects the managed Codex HTTP MCP generator to use `http_headers` for Authorization. The patch accepts an already corrected generator and fails the build on unexpected source. The deployed base image digest and Slack OAuth patch remain unchanged.
+
+Run `node --test scripts/fix-codex-mcp-headers.test.mjs` to check the compatibility patch.
